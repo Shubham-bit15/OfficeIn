@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OfficeIn — Welcome</title>
+  <link rel="icon" href="img\logo.jpg" type="image/jpeg"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+    
+    :root {
+      --bg-white: #ffffff;
+      --blue-primary: #2563eb;
+      --blue-hover: #1d4ed8;
+      --text-dark: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--bg-white);
+      color: var(--text-dark);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Navigation Bar ─── */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 5%;
+      background-color: var(--bg-white);
+    }
+    
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--text-dark);
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background-color: var(--blue-primary);
+      color: #ffffff;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    /* Added this so the logo image fits perfectly inside the box */
+    .logo-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: inherit;
+    }
+
+    /* ─── Main Hero Section ─── */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 2rem 5% 5rem;
+      flex: 1;
+    }
+
+    /* ─── Image Placeholder Area ─── */
+    .image-container {
+      width: 100%;
+      max-width: 900px;
+      height: 450px;
+      background-color: #f8fafc;
+      border-radius: 20px;
+      margin-bottom: 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    }
+
+    .image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block; /* Changed to block so the image is visible */
+    }
+
+    /* ─── Typography & Content ─── */
+    .hero-content {
+      max-width: 700px;
+    }
+
+    .hero-content h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .hero-content h1 span {
+      color: var(--blue-primary);
+    }
+    
+    .hero-content p {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      margin-bottom: 2.5rem;
+      line-height: 1.6;
+    }
+
+    /* ─── Login Button ─── */
+    .login-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--blue-primary);
+      color: #ffffff;
+      padding: 1.1rem 3rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 50px;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+    }
+
+    .login-btn:hover {
+      background-color: var(--blue-hover);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 25px rgba(37, 99, 235, 0.35);
+    }
+
+    .login-btn:active {
+      transform: translateY(0);
+    }
+
+    /* ─── Responsive Design for Mobile ─── */
+    @media (max-width: 768px) {
+      .hero-content h1 { font-size: 2.5rem; }
+      .image-container { height: 250px; border-radius: 12px; }
+      .hero { padding-top: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">
+      <div class="logo-icon"> 
+        <img src="img/logo.jpg" alt="Logo">
+      </div>
+      OfficeIn
+    </div>
+  </nav>
+
+  <main class="hero">
+    
+    <div class="image-container">
+      <img src="img\hero.jpeg" alt="Hero Display Image">
+    </div>
+
+    <div class="hero-content">
+      <h1>Welcome to <span>OfficeIn</span></h1>
+      <p>The centralized hub for your daily operations. Access your staff profile, record your attendance, and view real-time company updates.</p>
+      
+      <a href="login.html" class="login-btn">Go to Login Portal</a>
+    </div>
+
+  </main>
+
+</body>
+</html>

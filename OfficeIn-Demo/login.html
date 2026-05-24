@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1280" />
+  <title>OfficeIn — Staff Portal</title>
+  <link rel="icon" href="img/logo.jpg" type="image/jpeg"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi&family=Cormorant+Garamond:ital,wght@1,300;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    #mobileBlock { display:none; }
+    @media (max-width: 1024px) {
+      #mobileBlock { display:flex !important; position:fixed; inset:0; z-index:9999; background:linear-gradient(135deg,#1e3a8a,#2563eb); flex-direction:column; align-items:center; justify-content:center; padding:2rem; text-align:center; }
+      #mobileBlock .mb-icon { font-size:3.5rem; margin-bottom:1rem; }
+      #mobileBlock h2 { color:#ffffff; font-size:1.3rem; font-weight:700; margin-bottom:0.7rem; font-family:'DM Sans', sans-serif; }
+      #mobileBlock p { color:rgba(255,255,255,0.8); font-size:0.88rem; line-height:1.8; max-width:320px; font-family:'DM Sans', sans-serif; }
+      body > *:not(#mobileBlock) { display:none !important; }
+    }
+
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    
+    :root {
+      --primary: #2563eb; 
+      --primary-hover: #1d4ed8; 
+      --primary-light: #dbeafe;
+      --bg-white: #ffffff; 
+      --bg-panel: #f8fafc;
+      --text-dark: #0f172a; 
+      --text-muted: #64748b;
+      --border: #e2e8f0; 
+      --danger: #ef4444; 
+      --success: #10b981;
+      --radius-md: 10px; 
+      --radius-lg: 20px;
+    }
+
+    body { 
+      font-family: 'DM Sans', sans-serif; 
+      background: var(--bg-panel); 
+      min-height: 100vh; 
+      display: flex; 
+      flex-direction: column; 
+      -webkit-font-smoothing: antialiased; 
+    }
+
+    /* AUTH NAVIGATION */
+    nav { 
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200; 
+      display: flex; align-items: center; justify-content: space-between; 
+      padding: 0 4rem; height: 80px; 
+      background: var(--bg-white); 
+      border-bottom: 1px solid var(--border); 
+    }
+    
+    .brand { 
+      display: flex; align-items: center; gap: 0.8rem; text-decoration: none; 
+      position: relative; padding: 0.5rem 1rem; z-index: 1;
+    }
+
+    .logo-bg-space {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: -1; background-color: var(--bg-white);
+      border-radius: 12px; overflow: hidden;
+    }
+    .logo-bg-space img {
+      width: 100%; height: 100%; object-fit: cover; opacity: 0.15; display: none; 
+    }
+
+    .brand-icon { 
+      width: 36px; height: 36px; 
+      background-color: var(--primary); 
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; 
+      font-weight: 700; font-size: 1.2rem; color: #fff; 
+    }
+    .brand-icon img {
+      width: 100%; height: 100%; object-fit: cover; border-radius: inherit;
+    }
+
+    .brand-name { color: var(--text-dark); font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
+    
+    .nav-link { 
+      color: var(--text-muted); text-decoration: none; padding: 0.5rem 1.1rem; 
+      border-radius: 8px; font-size: 0.95rem; font-weight: 600; transition: all 0.2s; 
+    }
+    .nav-link:hover { color: var(--primary); background: var(--bg-panel); }
+
+    /* LAYOUT PATTERN */
+    .page-wrap { flex: 1; display: grid; grid-template-columns: 1.1fr 0.9fr; min-height: 100vh; }
+
+    /* SIDE BANNER DISPLAY PANEL */
+    .left-panel { 
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); 
+      padding: 8rem 4rem 4rem; display: flex; flex-direction: column; 
+      justify-content: center; position: relative; overflow: hidden; 
+    }
+    .left-panel::before { 
+      content:''; position: absolute; inset: 0; 
+      background-image: radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px); 
+      background-size: 32px 32px; opacity: 0.6; 
+    }
+    .panel-inner { position: relative; z-index: 1; max-width: 540px; margin: 0 auto; }
+    .panel-label { font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; color: #bfdbfe; margin-bottom: 2rem; font-weight: 700; }
+    .panel-quote-hi { font-family: 'Tiro Devanagari Hindi', serif; font-size: 2rem; line-height: 1.4; color: #fff; margin-bottom: 0.5rem; }
+    .panel-quote-mr { font-family: 'Tiro Devanagari Hindi', serif; font-size: 1.2rem; line-height: 1.5; color: #93c5fd; margin-bottom: 1.5rem; }
+    .panel-divider { width: 48px; height: 3px; background: #60a5fa; margin-bottom: 1.5rem; border-radius: 3px; }
+    .panel-quote-en { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-style: italic; font-weight: 300; color: rgba(255,255,255,0.95); line-height: 1.6; margin-bottom: 0.5rem; }
+    .panel-author { font-size: 0.85rem; color: rgba(255,255,255,0.6); letter-spacing: 0.05em; font-weight: 500; }
+    .panel-info { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.15); }
+    .panel-info p { font-size: 0.9rem; color: rgba(255,255,255,0.7); line-height: 1.7; }
+    .panel-info strong { color: #fff; font-weight: 600; }
+
+    /* SECURITY AND AUTHENTICATION FORM FIELDS */
+    .right-panel { display: flex; align-items: center; justify-content: center; padding: 8rem 4rem 4rem; background: var(--bg-panel); }
+    .login-box { 
+      width: 100%; max-width: 440px; background: var(--bg-white); padding: 3rem; 
+      border-radius: var(--radius-lg); border: 1px solid var(--border); 
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); 
+    }
+    .login-eyebrow { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--primary); margin-bottom: 0.75rem; font-weight: 700; }
+    .login-title { font-size: 2rem; font-weight: 700; color: var(--text-dark); line-height: 1.2; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+    .login-sub { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 2.5rem; line-height: 1.6; }
+
+    .field { margin-bottom: 1.25rem; }
+    .field label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-dark); margin-bottom: 0.5rem; }
+    .field input { 
+      width: 100%; padding: 0.9rem 1.1rem; border: 1.5px solid var(--border); 
+      border-radius: var(--radius-md); font-size: 0.95rem; font-family: inherit; 
+      color: var(--text-dark); background: #f8fafc; outline: none; transition: all 0.2s; 
+    }
+    .field input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+    .field input::placeholder { color: #94a3b8; }
+
+    .btn-submit { 
+      width: 100%; background: var(--primary); color: #fff; border: none; 
+      padding: 1rem; border-radius: 50px; font-size: 1rem; font-weight: 600; 
+      cursor: pointer; transition: all 0.2s; margin-top: 1rem; display: flex; 
+      align-items: center; justify-content: center; gap: 0.5rem; 
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25); 
+    }
+    .btn-submit:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .btn-logout { 
+      width: 100%; background: #fff; color: var(--danger); border: 1.5px solid #fecaca; 
+      padding: 1rem; border-radius: 50px; font-size: 1rem; font-weight: 600; 
+      cursor: pointer; transition: all 0.2s; margin-top: 1.5rem; display: flex; 
+      align-items: center; justify-content: center; gap: 0.5rem; 
+    }
+    .btn-logout:hover { background: #fef2f2; border-color: var(--danger); }
+
+    .msg-box { margin-top: 1.25rem; padding: 0.8rem 1.1rem; border-radius: var(--radius-md); font-size: 0.87rem; text-align: center; display: none; font-weight: 500; }
+    .msg-box.error { background: #fef2f2; color: var(--danger); border: 1px solid #fee2e2; display: block; }
+    .msg-box.success { background: #ecfdf5; color: var(--success); border: 1px solid #d1fae5; display: block; }
+
+    .loc-status { margin-top: 1.5rem; padding: 1rem; background: var(--primary-light); border: 1px solid #bfdbfe; border-radius: var(--radius-md); font-size: 0.85rem; color: #1e3a8a; display: flex; align-items: flex-start; gap: 0.6rem; line-height: 1.5; font-weight: 500; }
+
+    /* USER LIVE METRICS DISPLAY CARD */
+    .logged-in-card { background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1rem; }
+    .logged-in-card h3 { font-size: 0.95rem; font-weight: 700; color: var(--text-dark); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+    .status-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; display: inline-block; box-shadow: 0 0 0 3px #d1fae5; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .info-item { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; }
+    .info-item-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.3rem; font-weight: 700; }
+    .info-item-val { font-size: 0.9rem; font-weight: 600; color: var(--text-dark); word-break: break-all; }
+
+    /* VERIFICATION AND SUCCESS RESULTS UI */
+    .success-screen { text-align: center; display: none; }
+    .success-icon { width: 64px; height: 64px; background: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 1.75rem; color: #fff; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
+    .success-screen h2 { font-size: 1.75rem; color: var(--text-dark); margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .success-screen p { font-size: 0.95rem; color: var(--muted); line-height: 1.6; }
+    .success-detail { margin-top: 2rem; background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; text-align: left; }
+    .detail-row { display: flex; justify-content: space-between; padding: 0.75rem 0; font-size: 0.9rem; border-bottom: 1px solid var(--border); }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-lbl { color: var(--muted); font-weight: 500; }
+    .detail-val { font-weight: 600; color: var(--text-dark); }
+    .btn-home { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background: var(--primary); color: #fff; text-decoration: none; padding: 1rem 2rem; border-radius: 50px; font-size: 0.95rem; font-weight: 600; margin-top: 2rem; transition: all 0.2s; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); width: 100%; }
+    .btn-home:hover { background: var(--primary-hover); }
+
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2.5px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <script>
+    (function checkDevice() {
+      var ua = navigator.userAgent;
+      var isMobile = /iPhone|iPad|iPod|Android|Mobile|Tablet|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      if (!isMobile && window.innerWidth >= 1024) return;
+      var b = document.body, s = b.style;
+      s.margin="0"; s.padding="2rem"; s.minHeight="100vh"; s.boxSizing="border-box";
+      s.display="flex"; s.flexDirection="column"; s.alignItems="center"; s.justifyContent="center";
+      s.background="linear-gradient(135deg,#1e3a8a,#2563eb)"; s.fontFamily="sans-serif"; s.textAlign="center";
+      b.innerHTML =
+        '<div style="max-width:340px">' +
+        '<div style="font-size:3.5rem;margin-bottom:1rem">🖥</div>' +
+        '<h2 style="color:#ffffff;font-size:1.4rem;font-weight:700;margin-bottom:0.8rem;font-family:sans-serif">Desktop Only</h2>' +
+        '<div style="width:40px;height:3px;background:#60a5fa;margin:0 auto 1rem;border-radius:2px"></div>' +
+        '<p style="color:rgba(255,255,255,0.8);font-size:0.95rem;line-height:1.8;font-family:sans-serif">' +
+        'OfficeIn works on <strong>laptops and desktops only</strong>.' +
+        '<br>Please open on a PC or laptop.</p></div>';
+    })();
+  </script>
+  
+  <div id="mobileBlock">
+    <div class="mb-icon">🖥️</div>
+    <h2>Desktop Only</h2>
+    <p>OfficeIn is designed for use on laptops and desktop computers only. Please open this page on a PC or laptop.</p>
+  </div>
+
+  <nav>
+    <a class="brand" href="index.html">
+      <div class="logo-bg-space">
+        <img src="img/logo.jpg" alt="Brand Logo Background" />
+      </div>
+      <div class="brand-icon">
+        <img src="img/logo.jpg" alt="Logo" />
+      </div>
+      <span class="brand-name">OfficeIn</span>
+    </a>
+    <a class="nav-link" href="index.html">← Back to Home</a>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="left-panel">
+      <div class="panel-inner">
+        <p class="panel-label">OfficeIn · Staff Authentication Portal</p>
+        <div class="panel-quote-hi" id="pHi"></div>
+        <div class="panel-quote-mr" id="pMr"></div>
+        <div class="panel-divider"></div>
+        <div class="panel-quote-en" id="pEn"></div>
+        <p class="panel-author" id="pAuthor"></p>
+        <div class="panel-info">
+          <p>Sign in with the corporate records credentials managed by your administrator. <strong>Login timestamps and checkout parameters</strong> are updated instantly inside the operations database layer.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <div class="login-box">
+
+        <div id="formSection">
+          <p class="login-eyebrow">Staff Operations Portal</p>
+          <h1 class="login-title">Mark System Attendance</h1>
+          <p class="login-sub">Sign in to initialize daily operations. Ensure you record your session logout at the finalization of shift schedules.</p>
+          
+          <div class="field">
+            <label>Corporate Email Address</label>
+            <input type="email" id="email" placeholder="yourname@office.com" />
+          </div>
+          <div class="field">
+            <label>Security Password</label>
+            <input type="password" id="password" placeholder="••••••••" />
+          </div>
+          
+          <button class="btn-submit" id="loginBtn" onclick="handleLogin()">
+            <span id="btnText">Sign In & Record Login</span>
+          </button>
+          <div class="msg-box" id="msgBox"></div>
+          
+          <div class="loc-status">
+            <span style="font-size: 1.2rem;">📍</span>
+            <span>Your dynamic geographic location coordinate matrix is mapped automatically during entry and exit routines.</span>
+          </div>
+        </div>
+
+        <div id="loggedInSection" style="display:none">
+          <p class="login-eyebrow">Active Session Status</p>
+          <h1 class="login-title">Session Instantiated</h1>
+          <p class="login-sub">Your operational entry timestamp is logged inside the attendance ledger. Conclude your session below at the end of shifts.</p>
+          
+          <div class="logged-in-card">
+            <h3><span class="status-dot"></span> Currently Active Matrix</h3>
+            <div class="info-grid">
+              <div class="info-item"><div class="info-item-label">Logged Account</div><div class="info-item-val" id="liEmail">—</div></div>
+              <div class="info-item"><div class="info-item-label">Recorded Entry</div><div class="info-item-val" id="liTime">—</div></div>
+              <div class="info-item"><div class="info-item-label">System Date</div><div class="info-item-val" id="liDate">—</div></div>
+              <div class="info-item"><div class="info-item-label">Geolocation</div><div class="info-item-val" id="liLoc">—</div></div>
+            </div>
+          </div>
+          
+          <button class="btn-logout" id="logoutBtn" onclick="handleLogout()">
+            <span id="logoutText">🚪 Terminate Session & Log Out</span>
+          </button>
+          <div class="msg-box" id="msgBox2"></div>
+        </div>
+
+        <div class="success-screen" id="successSection">
+          <div class="success-icon">✓</div>
+          <h2>Session Recorded</h2>
+          <p>Your authentication lifecycle bounds have been safely transmitted to the administrative console.</p>
+          
+          <div class="success-detail">
+            <div class="detail-row"><span class="detail-lbl">Log Date</span><span class="detail-val" id="recDate">—</span></div>
+            <div class="detail-row"><span class="detail-lbl">Instantiated In</span><span class="detail-val" id="recLoginTime">—</span></div>
+            <div class="detail-row"><span class="detail-lbl">Terminated Out</span><span class="detail-val" id="recLogoutTime">—</span></div>
+            <div class="detail-row"><span class="detail-lbl">Evaluated Duration</span><span class="detail-val" id="recDuration">—</span></div>
+            <div class="detail-row"><span class="detail-lbl">Account Email</span><span class="detail-val" id="recEmail">—</span></div>
+          </div>
+          
+          <a class="btn-home" href="index.html">Return to Main Page</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const quotes = [
+      { hi:"कर्म करो, फल की चिंता मत करो।", mr:"कर्म करा, फळाची काळजी करू नका.", en:"Do your work; don't worry about the results.", author:"— Bhagavad Gita" },
+      { hi:"सफलता का कोई शॉर्टकट नहीं होता।", mr:"यशाचा कोणताही शॉर्टकट नसतो.", en:"There is no shortcut to success.", author:"— Ancient Wisdom" },
+      { hi:"एकता में शक्ति है।", mr:"एकतेत शक्ती आहे.", en:"There is strength in unity.", author:"— Proverb" },
+      { hi:"समय ही सबसे बड़ी दौलत है।", mr:"वेळ हीच सर्वात मोठी संपत्ती आहे.", en:"Time is the greatest wealth.", author:"— Wisdom" },
+      { hi:"मेहनत कभी बेकार नहीं जाती।", mr:"परिश्रम कधीच वाया जात नाही.", en:"Hard work is never wasted.", author:"— Wisdom" },
+    ];
+    
+    const n = new Date(), s = new Date(n.getFullYear(),0,0);
+    const q = quotes[Math.floor((n-s)/86400000) % quotes.length];
+    
+    document.getElementById('pHi').textContent = q.hi;
+    document.getElementById('pMr').textContent = q.mr;
+    document.getElementById('pEn').textContent = '\u201C' + q.en + '\u201D';
+    document.getElementById('pAuthor').textContent = q.author;
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, doc, updateDoc, Timestamp, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    
+    // Import your external config
+    import { firebaseConfig } from "./config.js"; 
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    let currentUser = null, currentAttDocId = null, loginTimestamp = null;
+
+    // --- FIX: Attach functions to window so the button click works ---
+    window.handleLogin = handleLogin;
+    window.handleLogout = handleLogout;
+
+    async function handleLogin() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('loginBtn');
+      const btnText = document.getElementById('btnText');
+      const msgBox = document.getElementById('msgBox');
+      
+      msgBox.className = 'msg-box'; msgBox.textContent = '';
+      if (!email || !password) { msgBox.textContent = 'Please enter email and password.'; msgBox.className = 'msg-box error'; return; }
+      
+      btn.disabled = true;
+      btnText.innerHTML = '<span class="spinner"></span> Signing in…';
+      
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        currentUser = cred.user;
+        
+        const saveAndShow = async (lat, lng) => {
+          const now = Timestamp.now();
+          loginTimestamp = now;
+          const ref = await addDoc(collection(db, 'attendance'), {
+            uid: currentUser.uid, email: currentUser.email,
+            loginTime: now, logoutTime: null, timestamp: now,
+            latitude: lat || null, longitude: lng || null,
+            loginLocation: lat ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : null
+          });
+          
+          currentAttDocId = ref.id;
+          localStorage.setItem('officein_attDocId', ref.id);
+          localStorage.setItem('officein_loginMs', now.toMillis());
+          
+          document.getElementById('formSection').style.display = 'none';
+          document.getElementById('loggedInSection').style.display = 'block';
+        };
+
+        navigator.geolocation.getCurrentPosition(
+          p => saveAndShow(p.coords.latitude, p.coords.longitude),
+          () => saveAndShow(null, null), {timeout:8000}
+        );
+      } catch(err) {
+        btn.disabled = false; btnText.textContent = 'Sign In & Record Login';
+        msgBox.textContent = 'Login failed. Check your credentials.';
+        msgBox.className = 'msg-box error';
+      }
+    }
+
+    async function handleLogout() {
+      const btn = document.getElementById('logoutBtn');
+      btn.disabled = true;
+      
+      const docId = currentAttDocId || localStorage.getItem('officein_attDocId');
+      try {
+        await updateDoc(doc(db, 'attendance', docId), { logoutTime: Timestamp.now() });
+        await signOut(auth);
+        localStorage.clear();
+        document.getElementById('loggedInSection').style.display = 'none';
+        document.getElementById('successSection').style.display = 'block';
+      } catch(err) {
+        btn.disabled = false; alert('Error logging out.');
+      }
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+      currentUser = user;
+      let savedDocId = localStorage.getItem('officein_attDocId');
+      if (savedDocId) {
+        currentAttDocId = savedDocId;
+        document.getElementById('formSection').style.display = 'none';
+        document.getElementById('loggedInSection').style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

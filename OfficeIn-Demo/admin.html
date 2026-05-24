@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1280" />
+  <title>OfficeIn — Admin Control Panel</title>
+  <link rel="icon" href="img/logo.jpg" type="image/jpeg"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    /* ── Mobile Block ── */
+    #mobileBlock { display:none; }
+    @media (max-width: 1024px) {
+      #mobileBlock { display:flex !important; position:fixed; inset:0; z-index:9999; background:linear-gradient(135deg,#1e3a8a,#2563eb); flex-direction:column; align-items:center; justify-content:center; padding:2rem; text-align:center; }
+      #mobileBlock .mb-icon { font-size:3.5rem; margin-bottom:1rem; }
+      #mobileBlock h2 { color:#ffffff; font-size:1.5rem; font-weight:700; margin-bottom:0.7rem; font-family:'DM Sans', sans-serif; }
+      #mobileBlock p { color:rgba(255,255,255,0.8); font-size:0.95rem; line-height:1.8; max-width:320px; font-family:'DM Sans', sans-serif; }
+      body > *:not(#mobileBlock) { display:none !important; }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --primary: #2563eb; 
+      --primary-hover: #1d4ed8; 
+      --primary-light: #eff6ff;
+      --bg-light: #f8fafc;
+      --bg-white: #ffffff; 
+      --text-dark: #0f172a; 
+      --text-muted: #64748b;
+      --border: #e2e8f0; 
+      --danger: #ef4444; 
+      --success: #10b981;
+      --sidebar-width: 260px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--bg-light);
+      color: var(--text-dark);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Admin Login Gate ── */
+    #authGate {
+      position: fixed; inset: 0; background: var(--bg-light);
+      display: flex; align-items: center; justify-content: center; z-index: 1000;
+    }
+    .auth-card {
+      background: var(--bg-white); width: 100%; max-width: 400px;
+      padding: 3rem; border-radius: var(--radius-lg);
+      box-shadow: 0 10px 40px rgba(15, 23, 42, 0.08); border: 1px solid var(--border);
+    }
+    .auth-logo { display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 2rem; }
+    .auth-logo-icon { width: 40px; height: 40px; background: var(--primary); color: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; }
+    .auth-logo-text { font-size: 1.5rem; font-weight: 700; color: var(--text-dark); }
+    .auth-title { font-size: 1.25rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; }
+    .auth-sub { text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; }
+
+    /* ── Layout & Sidebar ── */
+    #adminPanel { display: none; min-height: 100vh; }
+    .sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-width);
+      background: var(--bg-white); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; z-index: 100;
+    }
+    .sidebar-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem; }
+    .sidebar-header .icon { width: 36px; height: 36px; background: var(--primary); color: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    .sidebar-header .text { font-weight: 700; font-size: 1.25rem; }
+
+    .auth-logo-icon img, .sidebar-header .icon img {
+      width: 100%; height: 100%; object-fit: cover; border-radius: inherit;
+    }
+    
+    .nav-menu { padding: 1.5rem 1rem; flex: 1; }
+    .nav-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin: 1.5rem 0 0.75rem 0.75rem; }
+    .nav-item {
+      display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem;
+      color: var(--text-muted); font-weight: 600; font-size: 0.95rem;
+      border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s;
+      border: none; background: transparent; width: 100%; text-align: left; margin-bottom: 0.25rem;
+    }
+    .nav-item:hover { background: var(--bg-light); color: var(--text-dark); }
+    .nav-item.active { background: var(--primary-light); color: var(--primary); }
+    
+    .sidebar-footer { padding: 1.5rem 1rem; border-top: 1px solid var(--border); }
+    .btn-logout { width: 100%; padding: 0.85rem; background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-logout:hover { background: #fee2e2; }
+
+    /* ── Main Content Area ── */
+    .main-content { margin-left: var(--sidebar-width); padding: 3rem 4rem; }
+    .page-header { margin-bottom: 2.5rem; }
+    .page-header h1 { font-size: 2rem; font-weight: 700; color: var(--text-dark); margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+    .page-header p { color: var(--text-muted); font-size: 1rem; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── Cards & Forms ── */
+    .card {
+      background: var(--bg-white); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+      overflow: hidden; margin-bottom: 2rem;
+    }
+    .card-header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #fcfcfd; }
+    .card-header h2 { font-size: 1.1rem; font-weight: 600; }
+    
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; padding: 2rem; }
+    .field { display: flex; flex-direction: column; gap: 0.5rem; }
+    .field label { font-size: 0.85rem; font-weight: 600; color: var(--text-dark); }
+    .field input, .field select { padding: 0.85rem 1rem; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.95rem; outline: none; transition: all 0.2s; font-family: inherit; }
+    .field input:focus, .field select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    
+    .btn-primary { background: var(--primary); color: #fff; padding: 0.85rem 1.5rem; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.95rem; }
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    /* ── Tables ── */
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    thead th { padding: 1.25rem 2rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); background: var(--bg-light); border-bottom: 1px solid var(--border); font-weight: 700; }
+    tbody td { padding: 1.25rem 2rem; font-size: 0.95rem; border-bottom: 1px solid var(--border); color: #334155; vertical-align: middle; }
+    tbody tr:hover td { background: #fcfcfd; }
+    
+    .badge { padding: 0.35rem 0.75rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; }
+    .badge-blue { background: var(--primary-light); color: var(--primary); }
+    .badge-green { background: #ecfdf5; color: var(--success); }
+
+    .btn-sm-outline { background: #fff; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; color: var(--text-dark); cursor: pointer; transition: 0.2s; }
+    .btn-sm-outline:hover { background: var(--bg-light); }
+    .btn-sm-danger { background: #fff; border: 1px solid #fecaca; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; color: var(--danger); cursor: pointer; transition: 0.2s; }
+    .btn-sm-danger:hover { background: #fef2f2; }
+
+    .filter-wrap { display: flex; align-items: center; gap: 1rem; }
+    .filter-wrap input[type="date"] { padding: 0.4rem 0.8rem; border: 1.5px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.85rem; color: var(--text-dark); outline: none; }
+    .filter-wrap input[type="date"]:focus { border-color: var(--primary); }
+
+    /* ── Modals ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-overlay.open { display: flex; }
+    .modal-card { background: #fff; width: 100%; max-width: 480px; border-radius: var(--radius-lg); padding: 2.5rem; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+    .modal-card h3 { font-size: 1.3rem; margin-bottom: 1.5rem; color: var(--text-dark); }
+    .cred-box { background: var(--bg-light); border: 1px solid var(--border); padding: 1rem; border-radius: 10px; margin-bottom: 1rem; font-family: monospace; font-size: 1rem; color: var(--text-dark); }
+    
+    .flex-row { display: flex; gap: 1rem; margin-top: 1.5rem; }
+    .flex-row button { flex: 1; }
+
+    .empty-state { text-align: center; padding: 3rem; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+  <div id="mobileBlock">
+    <div class="mb-icon">🖥️</div>
+    <h2>Desktop Only</h2>
+    <p>The Admin Panel is designed for laptops and desktops. Please open this page on a computer.</p>
+  </div>
+
+  <div id="authGate">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="auth-logo-icon">
+          <img src="img/logo.jpg" alt="Logo">
+        </div>
+        <div class="auth-logo-text">OfficeIn Admin</div>
+      </div>
+      <h2 class="auth-title">System Access</h2>
+      <p class="auth-sub">Enter administrator credentials</p>
+      
+      <div class="field">
+        <label>Admin Email</label>
+        <input type="email" id="aEmail" placeholder="admin@company.com" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="aPassword" placeholder="••••••••" />
+      </div>
+      <button class="btn-primary" style="width: 100%; margin-top: 0.5rem;" onclick="adminLogin()">Login to Dashboard</button>
+      <div id="aErr" style="color: var(--danger); font-size: 0.85rem; margin-top: 1rem; text-align: center;"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="credModal">
+    <div class="modal-card">
+      <h3>Staff Credentials</h3>
+      
+      <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Email ID</label>
+      <div class="cred-box" id="credEmail"></div>
+      
+      <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-top: 1rem;">Current Password</label>
+      <div class="cred-box" id="credPassword"></div>
+
+      <hr style="border: 0; border-top: 1px solid var(--border); margin: 1.5rem 0;" />
+      
+      <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-dark);">Reset Password</label>
+      <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+        <input type="text" id="newPasswordInput" placeholder="Enter new password" style="flex: 1; padding: 0.85rem 1rem; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.95rem; outline: none;" />
+        <button class="btn-primary" onclick="resetUserPassword()" id="btnResetPass">Update</button>
+      </div>
+      <div id="resetMsg" style="font-size: 0.85rem; margin-top: 0.5rem;"></div>
+
+      <div class="flex-row">
+        <button class="btn-sm-outline" style="padding: 0.85rem;" onclick="closeCredModal()">Close Window</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="adminPanel">
+    
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="icon">
+          <img src="img/logo.jpg" alt="Logo">
+        </div>
+        <div class="text">OfficeIn</div>
+      </div>
+      <nav class="nav-menu">
+        <div class="nav-label">Monitoring</div>
+        <button class="nav-item active" onclick="switchTab('attendance', this)">📋 Live Attendance</button>
+        
+        <div class="nav-label">Management</div>
+        <button class="nav-item" onclick="switchTab('members', this)">👥 Staff Directory</button>
+        <button class="nav-item" onclick="switchTab('addMember', this)">➕ Create User ID</button>
+        
+        <div class="nav-label">Reports</div>
+        <button class="nav-item" onclick="switchTab('export', this)">📥 Download Excel</button>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="btn-logout" onclick="adminSignOut()">Sign Out</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      
+      <div id="tab-attendance" class="tab-content active">
+        <div class="page-header">
+          <h1>Live Attendance</h1>
+          <p>Monitor real-time staff entry, exit, and daily log durations.</p>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h2>Daily Log</h2>
+            <div class="filter-wrap">
+              <input type="date" id="attDateFilter" onchange="loadAttendance()" title="Select a date" />
+              <button class="btn-sm-outline" onclick="loadAttendance()">↻ Refresh Log</button>
+            </div>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Staff Name</th>
+                  <th>Entry Time</th>
+                  <th>Exit Time</th>
+                  <th>Duration</th>
+                  <th>Location Coords</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="attBody">
+                <tr><td colspan="6" class="empty-state">Loading attendance...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-members" class="tab-content">
+        <div class="page-header">
+          <h1>Staff Directory</h1>
+          <p>Manage all registered staff accounts, view passwords, and delete IDs.</p>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h2>Registered Members</h2>
+            <button class="btn-sm-outline" onclick="loadMembers()">↻ Refresh List</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email ID</th>
+                  <th>Role</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="membersBody">
+                <tr><td colspan="4" class="empty-state">Loading members...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-addMember" class="tab-content">
+        <div class="page-header">
+          <h1>Create User ID</h1>
+          <p>Register a new staff member into the authentication system.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>New Staff Details</h2>
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Full Name</label>
+              <input type="text" id="mName" placeholder="e.g. John Doe" />
+            </div>
+            <div class="field">
+              <label>Job Role</label>
+              <input type="text" id="mRole" placeholder="e.g. Designer" />
+            </div>
+            <div class="field">
+              <label>Email Address (Login ID)</label>
+              <input type="email" id="mEmail" placeholder="john@company.com" />
+            </div>
+            <div class="field">
+              <label>Password</label>
+              <input type="text" id="mPassword" placeholder="Minimum 6 characters" />
+            </div>
+          </div>
+          <div style="padding: 0 2rem 2rem;">
+            <button class="btn-primary" onclick="addMember()" id="addBtn">Create Account</button>
+            <div id="addMsg" style="margin-top: 1rem; font-size: 0.9rem; font-weight: 500;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-export" class="tab-content">
+        <div class="page-header">
+          <h1>Download Attendance</h1>
+          <p>Generate and export monthly attendance records to an Excel file.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>Select Report Month</h2>
+          </div>
+          <div style="padding: 2rem; display: flex; gap: 1.5rem; align-items: flex-end;">
+            <div class="field" style="margin-bottom: 0; min-width: 200px;">
+              <label>Month</label>
+              <select id="exportMonth">
+                <option value="0">January</option><option value="1">February</option>
+                <option value="2">March</option><option value="3">April</option>
+                <option value="4">May</option><option value="5">June</option>
+                <option value="6">July</option><option value="7">August</option>
+                <option value="8">September</option><option value="9">October</option>
+                <option value="10">November</option><option value="11">December</option>
+              </select>
+            </div>
+            <div class="field" style="margin-bottom: 0; min-width: 150px;">
+              <label>Year</label>
+              <select id="exportYear"></select>
+            </div>
+            <button class="btn-primary" onclick="downloadExcel()">Download Excel (.xlsx)</button>
+          </div>
+          <div id="excelMsg" style="padding: 0 2rem 2rem; font-size: 0.9rem; font-weight: 500;"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script type="module">
+    // 1. IMPORT FIREBASE MODULES
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, updateDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    
+    // Import Config
+    import { firebaseConfig } from "./config.js";
+
+    // 2. INITIALIZE FIREBASE
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentResetDocId = null;
+
+    // 3. EXPOSE ALL FUNCTIONS TO WINDOW
+    window.adminLogin = adminLogin;
+    window.adminSignOut = adminSignOut;
+    window.switchTab = switchTab;
+    window.loadAttendance = loadAttendance;
+    window.loadMembers = loadMembers;
+    window.addMember = addMember;
+    window.deleteMember = deleteMember;
+    window.openCredModal = openCredModal;
+    window.closeCredModal = closeCredModal;
+    window.resetUserPassword = resetUserPassword;
+    window.downloadExcel = downloadExcel;
+
+    // Set Default Date
+    document.getElementById('attDateFilter').valueAsDate = new Date();
+
+    // Check if user is already logged in upon page refresh
+    onAuthStateChanged(auth, (user) => {
+      if (user && (user.email.includes('admin') || user.email === 'admin@ssp.in')) {
+        document.getElementById('authGate').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        loadAttendance();
+      }
+    });
+
+    // --- AUTHENTICATION ---
+    async function adminLogin() {
+      const email = document.getElementById('aEmail').value.trim();
+      const pwd = document.getElementById('aPassword').value;
+      const err = document.getElementById('aErr');
+      err.textContent = '';
+
+      if (!email || !pwd) { err.textContent = 'Please enter credentials.'; return; }
+      
+      // Basic Admin Email Verification
+      if(email !== 'admin@ssp.in' && !email.includes('admin')) {
+         err.textContent = 'Unauthorized access.'; return;
+      }
+
+      try {
+        await signInWithEmailAndPassword(auth, email, pwd);
+        document.getElementById('authGate').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        loadAttendance();
+      } catch (e) {
+        console.error(e);
+        err.textContent = 'Login failed. Check console for details.';
+      }
+    }
+
+    async function adminSignOut() {
+      await signOut(auth);
+      location.reload();
+    }
+
+    // --- NAVIGATION ---
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+      btn.classList.add('active');
+      
+      if(tabId === 'attendance') loadAttendance();
+      if(tabId === 'members') loadMembers();
+      if(tabId === 'export') initExportDates();
+    }
+
+    function initExportDates() {
+      const yearSelect = document.getElementById('exportYear');
+      if(yearSelect.options.length > 0) return;
+      const currentYear = new Date().getFullYear();
+      for(let y = currentYear; y >= currentYear - 3; y--) {
+        yearSelect.add(new Option(y, y));
+      }
+      document.getElementById('exportMonth').value = new Date().getMonth();
+    }
+
+    // --- ATTENDANCE TAB ---
+    async function loadAttendance() {
+      const tbody = document.getElementById('attBody');
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Loading attendance log...</td></tr>';
+      
+      let filterDateStr = document.getElementById('attDateFilter').value;
+      // Ensure the parsed date matches local time bounds properly
+      let filterDate = filterDateStr ? new Date(filterDateStr + 'T00:00:00').toDateString() : new Date().toDateString();
+
+      try {
+        // Use direct getDocs and collection calls instead of window.__fb
+        const [attSnap, memSnap] = await Promise.all([
+          getDocs(collection(db, 'attendance')),
+          getDocs(collection(db, 'members'))
+        ]);
+
+        const memberMap = {};
+        memSnap.forEach(d => { const m = d.data(); memberMap[m.email] = m.name; });
+
+        const records = [];
+        attSnap.forEach(d => {
+          const rec = d.data();
+          const ts = (rec.loginTime || rec.timestamp)?.toDate?.();
+          if(ts && ts.toDateString() === filterDate) {
+             records.push(rec);
+          }
+        });
+
+        if(records.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" class="empty-state">No attendance records found for ${filterDate}.</td></tr>`;
+          return;
+        }
+
+        records.sort((a,b) => (b.loginTime || b.timestamp)?.toDate() - (a.loginTime || a.timestamp)?.toDate());
+
+        tbody.innerHTML = records.map(rec => {
+          const name = memberMap[rec.email] || rec.email;
+          const loginTs = (rec.loginTime || rec.timestamp)?.toDate?.();
+          const logoutTs = rec.logoutTime?.toDate?.();
+          
+          const loginStr = loginTs ? loginTs.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—';
+          
+          let logoutStr = '—', durStr = '—', statusBadge = '<span class="badge badge-blue">Active</span>';
+
+          if (logoutTs) {
+            logoutStr = logoutTs.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            const diff = logoutTs - loginTs;
+            const h = Math.floor(diff / 3600000); 
+            const m = Math.floor((diff % 3600000) / 60000);
+            durStr = `${h}h ${m}m`;
+            statusBadge = '<span class="badge badge-green">Completed</span>';
+          }
+
+          return `
+            <tr>
+              <td style="font-weight: 600; color: var(--text-dark);">${name}</td>
+              <td>${loginStr}</td>
+              <td>${logoutStr}</td>
+              <td>${durStr}</td>
+              <td style="font-family: monospace; font-size: 0.85rem;">${rec.loginLocation || 'Not shared'}</td>
+              <td>${statusBadge}</td>
+            </tr>
+          `;
+        }).join('');
+
+      } catch(e) {
+        console.error("Attendance Error:", e);
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state" style="color:var(--danger)">Error reading database: ${e.message}</td></tr>`;
+      }
+    }
+
+    // --- MEMBERS TAB ---
+    async function loadMembers() {
+      const tbody = document.getElementById('membersBody');
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Loading...</td></tr>';
+      
+      try {
+        const snap = await getDocs(collection(db, 'members'));
+        const members = [];
+        snap.forEach(d => members.push({ id: d.id, ...d.data() }));
+
+        if (members.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No staff members found.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = members.map(m => `
+          <tr>
+            <td style="font-weight: 600; color: var(--text-dark);">${m.name}</td>
+            <td>${m.email}</td>
+            <td><span class="badge badge-blue">${m.role || 'Staff'}</span></td>
+            <td>
+              <button class="btn-sm-outline" style="margin-right:0.5rem;" onclick="openCredModal('${m.id}', '${m.email}', '${m.password}')">🔑 View / Reset Pass</button>
+              <button class="btn-sm-danger" onclick="deleteMember('${m.id}', '${m.name}')">🗑 Delete ID</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error("Members Error:", e);
+        tbody.innerHTML = `<tr><td colspan="4" class="empty-state" style="color:var(--danger)">Error loading members: ${e.message}</td></tr>`;
+      }
+    }
+
+    async function addMember() {
+      const name = document.getElementById('mName').value.trim();
+      const role = document.getElementById('mRole').value.trim();
+      const email = document.getElementById('mEmail').value.trim();
+      const password = document.getElementById('mPassword').value;
+      const msg = document.getElementById('addMsg');
+
+      if (!name || !email || !password) {
+        msg.textContent = 'Name, email, and password are required.';
+        msg.style.color = 'var(--danger)'; return;
+      }
+      if (password.length < 6) {
+        msg.textContent = 'Password must be at least 6 characters.';
+        msg.style.color = 'var(--danger)'; return;
+      }
+
+      msg.textContent = 'Creating account...';
+      msg.style.color = 'var(--text-muted)';
+      
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, 'members', cred.user.uid), {
+          name, email, role, password, uid: cred.user.uid, createdAt: Timestamp.now()
+        });
+
+        msg.textContent = `✅ User ${name} created successfully!`;
+        msg.style.color = 'var(--success)';
+        
+        document.getElementById('mName').value = '';
+        document.getElementById('mRole').value = '';
+        document.getElementById('mEmail').value = '';
+        document.getElementById('mPassword').value = '';
+      } catch (e) {
+        console.error("Create User Error:", e);
+        msg.textContent = 'Error: ' + e.message;
+        msg.style.color = 'var(--danger)';
+      }
+    }
+
+    async function deleteMember(docId, name) {
+      if(!confirm(`Are you sure you want to delete the ID for ${name}?`)) return;
+      try {
+        await deleteDoc(doc(db, 'members', docId));
+        alert(`${name} deleted successfully from database.`);
+        loadMembers();
+      } catch (e) {
+        console.error("Delete Error:", e);
+        alert('Error deleting member: ' + e.message);
+      }
+    }
+
+    // --- MODAL LOGIC ---
+    function openCredModal(docId, email, password) {
+      currentResetDocId = docId;
+      document.getElementById('credEmail').textContent = email;
+      document.getElementById('credPassword').textContent = password || 'Not Available';
+      document.getElementById('newPasswordInput').value = '';
+      document.getElementById('resetMsg').textContent = '';
+      document.getElementById('credModal').classList.add('open');
+    }
+
+    function closeCredModal() {
+      document.getElementById('credModal').classList.remove('open');
+      currentResetDocId = null;
+    }
+
+    async function resetUserPassword() {
+      const newPass = document.getElementById('newPasswordInput').value;
+      const msg = document.getElementById('resetMsg');
+      
+      if(newPass.length < 6) {
+        msg.textContent = 'Password must be at least 6 characters.';
+        msg.style.color = 'var(--danger)'; return;
+      }
+
+      msg.textContent = 'Updating...';
+      msg.style.color = 'var(--text-muted)';
+
+      try {
+        await updateDoc(doc(db, 'members', currentResetDocId), { password: newPass });
+        document.getElementById('credPassword').textContent = newPass;
+        document.getElementById('newPasswordInput').value = '';
+        msg.textContent = '✅ Database password updated successfully.';
+        msg.style.color = 'var(--success)';
+        loadMembers();
+      } catch(e) {
+        console.error("Password Update Error:", e);
+        msg.textContent = 'Error updating password: ' + e.message;
+        msg.style.color = 'var(--danger)';
+      }
+    }
+
+    // --- EXCEL LOGIC ---
+    async function downloadExcel() {
+      const month = parseInt(document.getElementById('exportMonth').value);
+      const year = parseInt(document.getElementById('exportYear').value);
+      const msgEl = document.getElementById('excelMsg');
+      
+      msgEl.innerHTML = 'Fetching data...';
+      msgEl.style.color = 'var(--text-muted)';
+
+      try {
+        const [attSnap, memSnap] = await Promise.all([
+          getDocs(collection(db, 'attendance')),
+          getDocs(collection(db, 'members'))
+        ]);
+
+        const memberMap = {};
+        memSnap.forEach(d => { const m = d.data(); memberMap[m.email] = m; });
+
+        const records = [];
+        attSnap.forEach(d => {
+          const rec = d.data();
+          const ts = (rec.loginTime || rec.timestamp)?.toDate?.();
+          if (ts && ts.getMonth() === month && ts.getFullYear() === year) {
+            records.push(rec);
+          }
+        });
+
+        if (records.length === 0) { 
+          msgEl.innerHTML = 'No attendance records found for this month.'; 
+          msgEl.style.color = 'var(--danger)'; 
+          return; 
+        }
+
+        records.sort((a, b) => {
+          const ta = (a.loginTime || a.timestamp)?.toDate?.()?.getTime() || 0;
+          const tb = (b.loginTime || b.timestamp)?.toDate?.()?.getTime() || 0;
+          return ta - tb;
+        });
+
+        const monthName = new Date(year, month, 1).toLocaleString('en-IN', { month: 'long' });
+        const headers = ['#', 'Name', 'Email', 'Role', 'Date', 'Entry Time', 'Exit Time', 'Duration (Hrs)', 'Location Coords'];
+
+        const dataRows = records.map((rec, i) => {
+          const loginTs = (rec.loginTime || rec.timestamp)?.toDate?.();
+          const logoutTs = rec.logoutTime?.toDate?.();
+          const member = memberMap[rec.email] || {};
+
+          let logoutDisplay = '—', durDisplay = '—';
+          if (logoutTs) {
+            logoutDisplay = logoutTs.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            const diff = logoutTs - loginTs;
+            const h = Math.floor(diff / 3600000); const m = Math.floor((diff % 3600000) / 60000);
+            durDisplay = `${h}h ${m}m`;
+          }
+
+          return [
+            i + 1,
+            member.name || rec.email,
+            rec.email,
+            member.role || 'Staff',
+            loginTs ? loginTs.toLocaleDateString('en-IN') : '—',
+            loginTs ? loginTs.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—',
+            logoutDisplay,
+            durDisplay,
+            rec.loginLocation || 'Not shared'
+          ];
+        });
+
+        const wb = XLSX.utils.book_new();
+        const wsData = [[`OfficeIn Attendance Report - ${monthName} ${year}`], [], headers, ...dataRows];
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        ws['!cols'] = [{wch:5}, {wch:20}, {wch:25}, {wch:15}, {wch:15}, {wch:12}, {wch:12}, {wch:15}, {wch:25}];
+        
+        XLSX.utils.book_append_sheet(wb, ws, 'Attendance');
+        XLSX.writeFile(wb, `Attendance_${monthName}_${year}.xlsx`);
+        
+        msgEl.innerHTML = `✅ Successfully downloaded ${records.length} records.`;
+        msgEl.style.color = 'var(--success)';
+      } catch (e) {
+        console.error("Excel Error:", e);
+        msgEl.innerHTML = 'Error generating Excel report.';
+        msgEl.style.color = 'var(--danger)';
+      }
+    }
+  </script>
+</body>
+</html>
